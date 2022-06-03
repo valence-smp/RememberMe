@@ -1,11 +1,11 @@
 package com.actualplayer.rememberme;
 
-import com.actualplayer.rememberme.handlers.*;
+import com.actualplayer.rememberme.handlers.FileHandler;
+import com.actualplayer.rememberme.handlers.IRememberMeHandler;
+import com.actualplayer.rememberme.handlers.LuckPermsHandler;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Dependency;
@@ -19,8 +19,6 @@ import net.luckperms.api.LuckPermsProvider;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
 
 @Plugin(id = "@ID@", name = "@NAME@", version = "@VERSION@", description = "@DESCRIPTION@", authors = {"ActualPlayer"}, dependencies = { @Dependency(id = "luckperms", optional = true) })
 public class RememberMe {
@@ -64,25 +62,6 @@ public class RememberMe {
         } else {
             handler = new FileHandler(this);
             getLogger().info("Using file-based storage");
-        }
-    }
-
-    @Subscribe
-    public void onServerChooseEvent(PlayerChooseInitialServerEvent chooseServerEvent) {
-        // Ignore plugin when user has notransfer permission
-        if (!chooseServerEvent.getPlayer().hasPermission("rememberme.notransfer")) {
-            handler.getLastServerName(chooseServerEvent.getPlayer().getUniqueId()).thenAcceptAsync(lastServerName -> {
-                if (lastServerName != null) {
-                    getServer().getServer(lastServerName).ifPresent((registeredServer) -> {
-                    	try {
-                    		registeredServer.ping().join();
-                    	} catch(CancellationException|CompletionException exception) {
-                    		return;
-                    	}
-                    	chooseServerEvent.setInitialServer(registeredServer);
-                    });
-                }
-            }).join();
         }
     }
 
